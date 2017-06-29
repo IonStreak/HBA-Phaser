@@ -34,6 +34,15 @@ function preload(){
     // ...
     game.load.spritesheet('spider', 'images/spider.png', 42, 32);
 
+    // game.load.spritesheet('spider', 'images/spider.png', 42, 32);
+    // Add invisible "walls" so the spiders don't fall off platforms
+    game.load.image('invisible-wall', 'images/invisible_wall.png');
+    // ...
+    // platforms = game.add.group();
+    // spiders = game.add.group();
+    enemyWalls = game.add.group();
+    // ...
+
 };
 
 function create(){
@@ -80,6 +89,7 @@ function loadLevel(data) {
     game.physics.arcade.gravity.y = 1200;
     // create all the groups/layers that we need
     //Make sure this line of code is after!
+    // ...
     
 };
 
@@ -121,6 +131,9 @@ function spawnPlatform(platform) {
     sprite.body.allowGravity = false;
     // sprite.body.allowGravity = false;
     sprite.body.immovable = true;
+     // ...
+    spawnEnemyWall(platform.x, platform.y, 'left');
+    spawnEnemyWall(platform.x + sprite.width, platform.y, 'right');
 };
 
 function move(direction){
@@ -153,6 +166,7 @@ function handleCollisions(){
     
     game.physics.arcade.collide(spiders, platforms);
     // ? - Set the collision between spiders and platforms
+    game.physics.arcade.collide(spiders, enemyWalls);
     // ...
 };
 
@@ -183,6 +197,26 @@ function onHeroVsCoin(hero, coin){
     sfxCoin.play();
     // ...
 };
+
+function spawnEnemyWall(x, y, side){
+    var sprite = enemyWalls.create(x, y, 'invisible-wall');
+    sprite.anchor.set(side === 'left' ? 1 : 0, 1);
+    game.physics.enable(sprite);
+    sprite.body.immovable = true;
+    sprite.body.allowGravity = false;
+}
+
+function moveSpider(){
+    spiders.forEach(function (spider){
+        if (spider.body.touching.right || spider.body.blocked.right) {
+            spider.body.velocity.x = -100; // turn left
+        }
+        else if (spider.body.touching.left || spider.body.blocked.left) {
+            spider.body.velocity.x = 100;
+            // ? - Change spiders velocity to turn right
+        }
+    })
+}
 
 //Create a game state
 var game = new Phaser.Game(960, 600, Phaser.AUTO, 'game', {init: init, preload: preload, create: create, update: update});
