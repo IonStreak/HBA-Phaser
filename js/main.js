@@ -27,6 +27,12 @@ function preload(){
 
     //Play a sound effect when jumping
     game.load.audio('sfx:jump', 'audio/jump.wav');
+    // ...
+    game.load.spritesheet('coin', 'images/coin_animated.png', 22, 22);
+
+    game.load.audio('sfx:coin', 'audio/coin.wav');
+    // ...
+    game.load.spritesheet('spider', 'images/spider.png', 42, 32);
 
 };
 
@@ -44,6 +50,7 @@ function create(){
     // game.add.image(0, 0, 'background');
 
     sfxJump = game.add.audio('sfx:jump');
+    sfxCoin = game.add.audio('sfx:coin');
   
 }
 
@@ -57,9 +64,18 @@ function loadLevel(data) {
     // spawn all platforms
     data.platforms.forEach(spawnPlatform, this);
     // game.add.image(0, 0, 'background');
+    coins = game.add.group();
+    // ? - Add a group to the game and set it to the value of 'coins'
+    spiders = game.add.group();
+    // ...
+
+    spawnCharacters({hero: data.hero, spiders: data.spiders});  
+    // spawn important objects
+    data.coins.forEach(spawnCoin, this);
+
+    // ...
 
     // spawn hero and enemies
-    spawnCharacters({hero: data.hero});
     //Enable gravity
     game.physics.arcade.gravity.y = 1200;
     // create all the groups/layers that we need
@@ -79,6 +95,21 @@ function spawnCharacters (data) {
 
     //Prevent the main character to get out of the screen
     hero.body.collideWorldBounds = true;
+
+    // ...
+    data.spiders.forEach(function (spider){
+        var sprite = game.add.sprite(spider.x, spider.y, 'spider');
+        spiders.add(sprite);
+        sprite.anchor.set(0.5);
+        // animation
+        sprite.animations.add('crawl', [0, 1, 2], 8, true);
+        sprite.animations.add('die', [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3], 12);
+        sprite.animations.play('crawl');
+        game.physics.enable(sprite);
+        sprite.body.collideWorldBounds = true;
+        sprite.body.velocity.x = 100
+        // ? - Set the sprite.body.velocity.x to value 100
+    })
 };
 
 function spawnPlatform(platform) {
@@ -116,7 +147,13 @@ function handleInput(){
 }
 
 function handleCollisions(){
-   game.physics.arcade.collide(hero, platforms);
+    game.physics.arcade.collide(hero, platforms);
+    //...
+    game.physics.arcade.overlap(hero, coins, onHeroVsCoin, null);
+    
+    game.physics.arcade.collide(spiders, platforms);
+    // ? - Set the collision between spiders and platforms
+    // ...
 };
 
 function jump(){
@@ -124,10 +161,28 @@ var canJump = hero.body.touching.down;
     //Ensures hero is on the ground or on a platform
     if (canJump) {
         hero.body.velocity.y = -600;
+        sfxJump.play();
         return canJump;
     }
     // ? - return the variable canJump
 }
+
+function spawnCoin(coin) {
+    var sprite = coins.create(coin.x, coin.y, 'coin');
+    sprite.anchor.set(0.5, 0.5);
+    // ...
+    sprite.animations.add('rotate', [0, 1, 2, 1], 6, true); // 6fps, looped
+    sprite.animations.play('rotate');
+    // ...
+    game.physics.enable(sprite);
+    sprite.body.allowGravity = false;
+};
+
+function onHeroVsCoin(hero, coin){
+    coin.kill();
+    sfxCoin.play();
+    // ...
+};
 
 //Create a game state
 var game = new Phaser.Game(960, 600, Phaser.AUTO, 'game', {init: init, preload: preload, create: create, update: update});
