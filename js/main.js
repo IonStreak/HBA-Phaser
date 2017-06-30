@@ -43,6 +43,10 @@ function preload(){
     enemyWalls = game.add.group();
     // ...
 
+    // ...
+    game.load.audio('sfx:stomp', 'audio/stomp.wav');
+    // ? - Load the audio 'sfx:stomp' from 'audio/stomp.wav'
+
 };
 
 function create(){
@@ -60,12 +64,17 @@ function create(){
 
     sfxJump = game.add.audio('sfx:jump');
     sfxCoin = game.add.audio('sfx:coin');
+
+    // ...
+    sfxStomp = game.add.audio('sfx:stomp');
+    // ? - Add the audio 'sfx:stomp' and set to value of sfxStomp
   
 }
 
 function update(){
     handleInput();
     handleCollisions();
+    moveSpider();
 }
 
 function loadLevel(data) {
@@ -120,6 +129,7 @@ function spawnCharacters (data) {
         sprite.body.velocity.x = 100
         // ? - Set the sprite.body.velocity.x to value 100
     })
+
 };
 
 function spawnPlatform(platform) {
@@ -168,6 +178,8 @@ function handleCollisions(){
     // ? - Set the collision between spiders and platforms
     game.physics.arcade.collide(spiders, enemyWalls);
     // ...
+    // ...
+    game.physics.arcade.overlap(hero, spiders, onHeroVsEnemy, null,this);
 };
 
 function jump(){
@@ -216,6 +228,39 @@ function moveSpider(){
             // ? - Change spiders velocity to turn right
         }
     })
+}
+
+function onHeroVsEnemy(hero, enemy) {
+    if (hero.body.velocity.y > 0) { // kill enemies when hero is falling
+        hero.body.velocity.y = -200;
+        die(enemy);
+        sfxStomp.play();
+    }
+    else { // game over -> restart the game
+        sfxStomp.play();
+        game.state.restart();
+    }
+ };
+
+function die(spider){
+    spider.body.enable = false;
+    spider.animations.play('die');
+    spider.animations.play('die').onComplete.addOnce(function () {
+        spider.kill();
+    });
+}
+
+function spawnSpider(){
+    spider = spiders.create(spider.x, spider.y, 'spider');
+    spider.anchor.set(0.5);
+    spider.animations.add('crawl', [0, 1, 2], 8, true);
+    spider.animations.add('die', [0, 4, 0, 4, 0, 4, 3, 3, 3, 3, 3, 3], 1);
+    spider.animations.play('crawl');
+
+    // physic properties
+    game.physics.enable(spider);
+    spider.body.collideWorldBounds = true;
+    spider.body.velocity.x = Spider.speed;
 }
 
 //Create a game state
