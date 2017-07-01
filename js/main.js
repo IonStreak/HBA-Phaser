@@ -1,3 +1,5 @@
+var coinPickupCount = 0;
+
 function init(){
 //Make hero sprite more focused when moving around
     game.renderer.renderSession.roundPixels = true;
@@ -46,6 +48,17 @@ function preload(){
     // ...
     game.load.audio('sfx:stomp', 'audio/stomp.wav');
     // ? - Load the audio 'sfx:stomp' from 'audio/stomp.wav'
+    // ...
+    game.load.image('icon:coin', 'images/coin_icon.png');
+    // ? - load the image 'images/coin_icon.png' and set as 'icon:coin'
+    // ...
+    game.load.image('font:numbers', 'images/numbers.png');
+    // ? - load the image 'images/numbers.png' and set as 'font:numbers'
+    // ...
+    // ...
+    game.load.spritesheet('door', 'images/door.png', 42, 66);
+    // ...
+    game.load.image('key', 'images/key.png');
 
 };
 
@@ -68,6 +81,22 @@ function create(){
     // ...
     sfxStomp = game.add.audio('sfx:stomp');
     // ? - Add the audio 'sfx:stomp' and set to value of sfxStomp
+    coinIcon = game.make.image(40, 0, 'icon:coin');
+
+    hud = game.add.group();
+    hud.add(coinIcon);
+    hud.position.set(10, 10);
+    // ...
+    var NUMBERS_STR = "0123456789X ";
+    // ? - Declare a variable 'NUMBERS_STR' and set its value as string '0123456789X '
+    coinFont = game.add.retroFont('font:numbers', 20, 26, NUMBERS_STR, 6);
+    // ...
+    // let coinIcon = ...
+    var coinScoreImg = game.make.image(100 + coinIcon.width, coinIcon.height / 2, coinFont);
+    coinScoreImg.anchor.set(1, 0.5);
+
+    // ...
+    hud.add(coinScoreImg);
   
 }
 
@@ -98,6 +127,18 @@ function loadLevel(data) {
     game.physics.arcade.gravity.y = 1200;
     // create all the groups/layers that we need
     //Make sure this line of code is after!
+    // ...
+    bgDecoration = game.add.group();
+    // ...
+    // ...
+    // after spawning the coins in this line:
+    // data.coins.forEach(spawnCoin, this);
+    spawnDoor(data.door.x, data.door.y);
+    // ...
+    // ...
+    // add it below the call to spawnDoor
+    // spawnDoor(data.door.x, data.door.y);
+    spawnKey(data.key.x, data.key.y);
     // ...
     
 };
@@ -153,7 +194,7 @@ function move(direction){
         hero.scale.x = -1;
     }
     else if (hero.body.velocity.x > 1) {
-        // ? - Change the hero scale when the velocity is more than 0
+        hero.scale.x= 1
     }
 }
 
@@ -179,7 +220,7 @@ function handleCollisions(){
     game.physics.arcade.collide(spiders, enemyWalls);
     // ...
     // ...
-    game.physics.arcade.overlap(hero, spiders, onHeroVsEnemy, null,this);
+    game.physics.arcade.overlap(hero, spiders, onHeroVsEnemy, null);
 };
 
 function jump(){
@@ -205,8 +246,11 @@ function spawnCoin(coin) {
 };
 
 function onHeroVsCoin(hero, coin){
+    coinPickupCount++;
     coin.kill();
     sfxCoin.play();
+    // ...
+    coinFont.text = `x${coinPickupCount}`;
     // ...
 };
 
@@ -261,6 +305,20 @@ function spawnSpider(){
     game.physics.enable(spider);
     spider.body.collideWorldBounds = true;
     spider.body.velocity.x = Spider.speed;
+}
+
+function spawnDoor(x, y){
+    door = bgDecoration.create(x, y, 'door');
+    door.anchor.setTo(0.5, 1);
+    game.physics.enable(door);
+    door.body.allowGravity = false;
+}
+
+function spawnKey(x, y){
+    key = bgDecoration.create(x, y, 'key');
+    key.anchor.set(0.5, 0.5);
+    game.physics.enable(key);
+    key.body.allowGravity = false;
 }
 
 //Create a game state
