@@ -22,10 +22,9 @@ function preload(){
     // ? - load the image for grass:2x1
     // ? - load the image for grass:1x1
     // ...
-
-    // load the hero image
-    game.load.image('hero', 'images/hero_stopped.png');
-    //game.load.image('grass:1x1', 'images/grass_1x1.png');
+    // ...
+    game.load.spritesheet('hero', 'images/hero.png', 36, 42);
+    // ...
 
     //Play a sound effect when jumping
     game.load.audio('sfx:jump', 'audio/jump.wav');
@@ -59,6 +58,11 @@ function preload(){
     game.load.spritesheet('door', 'images/door.png', 42, 66);
     // ...
     game.load.image('key', 'images/key.png');
+    // ...
+    game.load.audio('sfx:key', 'audio/key.wav');
+    game.load.audio('sfx:door', 'audio/door.wav');
+    // ...
+    game.load.spritesheet('icon:key', 'images/key_icon.png', 34, 30);
 
 };
 
@@ -81,7 +85,10 @@ function create(){
     // ...
     sfxStomp = game.add.audio('sfx:stomp');
     // ? - Add the audio 'sfx:stomp' and set to value of sfxStomp
+    // ...
+    // remove the previous let coinIcon = ... line and use this one instead
     coinIcon = game.make.image(40, 0, 'icon:coin');
+    // ...
 
     hud = game.add.group();
     hud.add(coinIcon);
@@ -97,6 +104,12 @@ function create(){
 
     // ...
     hud.add(coinScoreImg);
+    sfxKey = game.add.audio('sfx:key');
+    sfxDoor = game.add.audio('sfx:door');
+    keyIcon = game.make.image(0, 19, 'icon:key');
+    keyIcon.anchor.set(0, 0.5);
+    // ...
+    hud.add(keyIcon);
   
 }
 
@@ -104,6 +117,13 @@ function update(){
     handleInput();
     handleCollisions();
     moveSpider();
+    var animationName = getAnimationName();
+    if (hero.animations.name !== animationName) {
+        hero.animations.play(animationName);
+    }
+    // ...
+    //Add the key icon
+    keyIcon.frame = hasKey ? 1 : 0;
 }
 
 function loadLevel(data) {
@@ -171,6 +191,11 @@ function spawnCharacters (data) {
         // ? - Set the sprite.body.velocity.x to value 100
     })
 
+    hero.animations.add('stop', [0]);
+    hero.animations.add('run', [1, 2], 8, true); // 8fps looped
+    hero.animations.add('jump', [3]);
+    hero.animations.add('fall', [4]);
+
 };
 
 function spawnPlatform(platform) {
@@ -221,6 +246,15 @@ function handleCollisions(){
     // ...
     // ...
     game.physics.arcade.overlap(hero, spiders, onHeroVsEnemy, null);
+    // ...
+    game.physics.arcade.overlap(hero, key, onHeroVsKey, null, this)
+
+    // ...
+    game.physics.arcade.overlap(hero, door, onHeroVsDoor,
+        // ignore if there is no key or the player is on air
+        function (hero, door) {
+            return hasKey && hero.body.touching.down;
+        });
 };
 
 function jump(){
@@ -319,6 +353,35 @@ function spawnKey(x, y){
     key.anchor.set(0.5, 0.5);
     game.physics.enable(key);
     key.body.allowGravity = false;
+}
+
+function getAnimationName(){
+    var name = 'stop';
+    // jumping
+    if (hero.body.velocity.y < 0) {
+        name = 'jump';
+    }
+    // falling
+    else if (hero.body.velocity.y >= 0 && !hero.body.touching.down) {
+        name = 'fall';
+    }
+    else if (hero.body.velocity.x !== 0 && hero.body.touching.down) {
+        name = 'run';
+    }
+    return name;
+}
+
+var hasKey = false;
+
+function onHeroVsKey(hero, key){
+    sfxKey.play();
+    key.kill();
+    hasKey = true;
+}
+
+function onHeroVsDoor(hero, door){
+    sfxDoor.play();
+    game.state.restart();
 }
 
 //Create a game state
