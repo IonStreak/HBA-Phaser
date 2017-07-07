@@ -7,7 +7,8 @@ function init(){
 }
 
 function preload(){
-    game.load.image('background', 'images/background.png');
+    game.load.image('background1', 'images/background1.png');
+    game.load.json('level:2', 'data/level02.json');
     game.load.json('level:1', 'data/level01.json');
     game.load.json('level:0', 'data/level00.json');
     //spawn platform sprites
@@ -23,21 +24,21 @@ function preload(){
     game.load.audio('sfx:jump', 'audio/jump.wav');
     game.load.audio('sfx:coin', 'audio/coin.wav');
     game.load.audio('sfx:stomp', 'audio/stomp.wav');
-    game.load.spritesheet('coin', 'images/coin_animated.png', 22, 22);
+    game.load.spritesheet('coin', 'images/coin_animated1.png', 22, 22);
     game.load.spritesheet('spider', 'images/spider.png', 42, 32);
     game.load.image('invisible-wall', 'images/invisible_wall.png');
     game.load.image('icon:coin', 'images/coin_icon.png');
     game.load.image('font:numbers', 'images/numbers.png');
-    game.load.spritesheet('door', 'images/door.png', 42, 66);
-    game.load.image('key', 'images/key.png');
+    game.load.spritesheet('door', 'images/door1.png', 42, 66);
+    game.load.image('key', 'images/key1.png');
     game.load.audio('sfx:key', 'audio/key.wav');
     game.load.audio('sfx:door', 'audio/door.wav');
-    game.load.spritesheet('icon:key', 'images/key_icon.png', 34, 30);
+    game.load.spritesheet('icon:key', 'images/key_icon1.png', 34, 30);
 
 };
 
 function create(){
-    game.add.image(0, 0, 'background');
+    game.add.image(0, 0, 'background1');
     sfxJump = game.add.audio('sfx:jump');
     sfxCoin = game.add.audio('sfx:coin');
     sfxStomp = game.add.audio('sfx:stomp');
@@ -268,6 +269,9 @@ function onHeroVsDoor(hero, door){
     sfxDoor.play();
     if (level === 0){
         level = level + 1;
+    }
+    else if(level === 1){
+        level = level +1
     }
     else {
         level = 0;
